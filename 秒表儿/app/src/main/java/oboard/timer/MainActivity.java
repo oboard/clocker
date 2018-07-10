@@ -19,7 +19,6 @@ public class MainActivity
 extends Activity
 {
     public static FrameLayout local;
-    Bitmap clock;
     Handler handler = new Handler();
     boolean paused = true;
     long time = 0;
@@ -41,21 +40,25 @@ extends Activity
         this.time = 0;
     }
 
-    private void drawClock(Canvas canvas, Paint paint)
+    private void drawClock()
     {
+        Bitmap clock = Bitmap.createBitmap((int)MainActivity.local.getWidth(), (int)MainActivity.local.getHeight(), (Bitmap.Config)Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(clock);
+        Paint paint = new Paint();
         paint.setAntiAlias(true);
         paint.setColor(-1);
-        canvas.drawColor(Color.argb((int)50, (int)0, (int)0, (int)0));
+        paint.setTextSize(50);
+        canvas.drawColor(Color.argb(50, 0, 0, 0));
         paint.setStrokeWidth(3.0f);
         paint.setStyle(Paint.Style.STROKE);
         RectF rectF = new RectF();
         rectF.left = 100;
-        rectF.top = (canvas.getHeight() - canvas.getWidth()) / 2;
+        rectF.top = (canvas.getHeight() - canvas.getWidth() + 200) / 2;
         rectF.right = -100 + canvas.getWidth();
-        rectF.bottom = (canvas.getHeight() + canvas.getWidth()) / 2;
-        canvas.drawArc(rectF, 0, (float)360, false, paint);
-        canvas.drawText(new StringBuffer().append("").append(this.time).toString(), (float)100, (float)100, paint);
-        local.setBackground((Drawable)new BitmapDrawable(this.clock));
+        rectF.bottom = (canvas.getHeight() + canvas.getWidth() - 200) / 2;
+        canvas.drawArc(rectF, 0, (float)360/(time % 60), false, paint);
+        canvas.drawText(new StringBuffer().append("").append(this.time).toString(), canvas.getWidth() / 2, canvas.getHeight() / 2, paint);
+        local.setBackground((Drawable)new BitmapDrawable(clock));
     }
 
     @Override
@@ -94,10 +97,8 @@ extends Activity
                 return;
             handler.postDelayed(this, 1);
             time++;
-            clock = Bitmap.createBitmap((int)MainActivity.local.getWidth(), (int)MainActivity.local.getHeight(), (Bitmap.Config)Bitmap.Config.ARGB_8888);
-            Canvas canvas = new Canvas(clock);
-            Paint paint = new Paint();
-            drawClock(canvas, paint);
+            
+            drawClock();
         }
     };
 
