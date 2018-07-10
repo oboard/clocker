@@ -17,6 +17,7 @@ public final class R {
     }
     public static final class id {
         public static final int mainlayout=0x7f070000;
+        public static final int maintext=0x7f070001;
     }
     public static final class layout {
         public static final int activitymain=0x7f030000;

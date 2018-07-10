@@ -6,6 +6,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,86 +15,90 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 
-public class MainActivity extends Activity 
-{  
-	FrameLayout local;
- 	boolean paused = false;
-  	long time = 0;
-	Bitmap clock;
+public class MainActivity
+extends Activity
+{
+    public static FrameLayout local;
+    Bitmap clock;
+    Handler handler = new Handler();
+    boolean paused = true;
+    long time = 0;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState)
+    private void Pause()
     {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activitymain);
-
-		//透明
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
-		{
-			WindowManager.LayoutParams localLayoutParams = getWindow().getAttributes();
-			localLayoutParams.flags = (WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS | localLayoutParams.flags);
-		}
-
-		local = (FrameLayout)findViewById(R.id.mainlayout);
-
-		local.setOnClickListener(new View.OnClickListener() {
-				public void onClick(View view)
-				{
-					if (paused)
-						Start();
-				}
-			});
+        this.paused = true;
     }
-
-
-	Handler handler = new Handler();
-    Runnable runnable = new Runnable() {
-        @Override
-        public void run()
-		{
-			if (paused) return;
-           	handler.postDelayed(this, 1000);
-            time++;
-
-			clock = Bitmap.createBitmap(local.getWidth(), local.getHeight(), Bitmap.Config.ARGB_8888);
-			Canvas c = new Canvas(clock);
-			Paint p = new Paint();
-			drawClock(c p);
-
-        }
-    };
 
     private void Start()
-	{
-		paused = true;
-        handler.postDelayed(runnable, 1000);
+    {
+        this.paused = false;
+        this.handler.postDelayed(this.runnable, 1);
     }
-	private void Pause()
-	{
-        paused = false;
+
+    private void Stop()
+    {
+        this.Pause();
+        this.time = 0;
     }
-	private void Stop()
-	{
-       	Pause();
-		time = 0;
+
+    private void drawClock(Canvas canvas, Paint paint)
+    {
+        paint.setAntiAlias(true);
+        paint.setColor(-1);
+        canvas.drawColor(Color.argb((int)50, (int)0, (int)0, (int)0));
+        paint.setStrokeWidth(3.0f);
+        paint.setStyle(Paint.Style.STROKE);
+        RectF rectF = new RectF();
+        rectF.left = 100;
+        rectF.top = (canvas.getHeight() - canvas.getWidth()) / 2;
+        rectF.right = -100 + canvas.getWidth();
+        rectF.bottom = (canvas.getHeight() + canvas.getWidth()) / 2;
+        canvas.drawArc(rectF, 0, (float)360, false, paint);
+        canvas.drawText(new StringBuffer().append("").append(this.time).toString(), (float)100, (float)100, paint);
+        local.setBackground((Drawable)new BitmapDrawable(this.clock));
+    }
+
+    @Override
+    protected void onCreate(Bundle bundle)
+    {
+        super.onCreate(bundle);
+        this.setContentView(R.layout.activitymain);
+        if (Build.VERSION.SDK_INT >= 19)
+        {
+            WindowManager.LayoutParams layoutParams = this.getWindow().getAttributes();
+            layoutParams.flags = 67108864 | layoutParams.flags;
+        }
+        local = (FrameLayout)this.findViewById(R.id.mainlayout);
+        local.setClickable(true);
+        local.setOnClickListener(new View.OnClickListener() {
+
+                public void onClick(View view)
+                {
+                    if (paused)
+                    {
+                        Start();
+                        return;
+                    }
+                    Pause();
+                }
+            });
     }
 
 
-	//DRAW
-	private void drawClock(Canvas canvas, Paint paint)
-	{
-		paint.setAntiAlias(true);                       //设置画笔为无锯齿  
-		paint.setColor(Color.BLACK);                    //设置画笔颜色  
-		canvas.drawColor(Color.WHITE);                  //白色背景  
-		paint.setStrokeWidth((float) 3.0);              //线宽  
-		paint.setStyle(Paint.Style.STROKE);  
+    Runnable runnable = new Runnable() {
 
-		RectF oval = new RectF();                     //RectF对象  
-		oval.left = 100;                              //左边  
-		oval.top = 100;                                   //上边  
-		oval.right = 400;                             //右边  
-		oval.bottom = 300;                                //下边  
-		canvas.drawArc(oval, 225, 90, false, paint);    //绘制圆弧  
-	}
+        @Override
+        public void run()
+        {
+            if (paused)
+                return;
+            handler.postDelayed(this, 1);
+            time++;
+            clock = Bitmap.createBitmap((int)MainActivity.local.getWidth(), (int)MainActivity.local.getHeight(), (Bitmap.Config)Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(clock);
+            Paint paint = new Paint();
+            drawClock(canvas, paint);
+        }
+    };
 
 }
