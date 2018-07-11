@@ -15,13 +15,12 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 
-public class MainActivity
-extends Activity
+public class MainActivity extends Activity
 {
     public static FrameLayout local;
     Handler handler = new Handler();
     boolean paused = true;
-    long time = 0;
+    long time = 0, time2 = 0;
 
     private void Pause()
     {
@@ -30,6 +29,8 @@ extends Activity
 
     private void Start()
     {
+        if (this.time == 0)
+            this.time2 = System.currentTimeMillis();
         this.paused = false;
         this.handler.postDelayed(this.runnable, 1);
     }
@@ -46,17 +47,30 @@ extends Activity
         Canvas canvas = new Canvas(clock);
         Paint paint = new Paint();
         paint.setAntiAlias(true);
-        paint.setColor(-1);
         paint.setTextSize(50);
         canvas.drawColor(Color.argb(50, 0, 0, 0));
         paint.setStrokeWidth(3.0f);
         paint.setStyle(Paint.Style.STROKE);
-        RectF rectF = new RectF();
-        rectF.left = 100;
-        rectF.top = (canvas.getHeight() - canvas.getWidth() + 200) / 2;
-        rectF.right = -100 + canvas.getWidth();
-        rectF.bottom = (canvas.getHeight() + canvas.getWidth() - 200) / 2;
-        canvas.drawArc(rectF, 0, (float)360/(time % 60), false, paint);
+        RectF rectF = new RectF(
+            100,
+            (canvas.getHeight() - canvas.getWidth() + 200) / 2,
+            canvas.getWidth() - 100,
+            (canvas.getHeight() + canvas.getWidth() - 200) / 2
+        );
+        RectF rectF2 = new RectF(
+            canvas.getWidth() / 5 - 100,
+            canvas.getHeight()/2 - canvas.getWidth()/2 + 100,
+            canvas.getWidth() / 5 + 100,
+            canvas.getHeight()/2 - canvas.getWidth()/2 + 300
+        );
+        paint.setColor(Color.argb(50, 255, 255, 255));
+        canvas.drawOval(rectF, paint);
+        paint.setColor(-1);
+        canvas.drawArc(rectF, 0, (float)(360 * (time % 1000) / 1000), false, paint);
+
+        canvas.drawArc(rectF, 0, (float)(360 * (time % 1000) / 1000), false, paint);
+
+        paint.setStyle(Paint.Style.FILL);
         canvas.drawText(new StringBuffer().append("").append(this.time).toString(), canvas.getWidth() / 2, canvas.getHeight() / 2, paint);
         local.setBackground((Drawable)new BitmapDrawable(clock));
     }
@@ -93,12 +107,12 @@ extends Activity
         @Override
         public void run()
         {
+            drawClock();
             if (paused)
                 return;
             handler.postDelayed(this, 1);
-            time++;
-            
-            drawClock();
+            time = System.currentTimeMillis() - time2;
+
         }
     };
 
