@@ -1,19 +1,12 @@
 package oboard.timer;
 
 import android.app.Activity;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.RectF;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
+import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.FrameLayout;
 
 public class MainActivity extends Activity
 {
@@ -29,10 +22,10 @@ public class MainActivity extends Activity
 
     private void Start()
     {
+        this.paused = false;
+        this.handler.post(this.runnable);
         if (this.time == 0)
             this.time2 = System.currentTimeMillis();
-        this.paused = false;
-        this.handler.postDelayed(this.runnable, 1);
     }
 
     private void Stop()
@@ -46,6 +39,7 @@ public class MainActivity extends Activity
     {
         super.onCreate(bundle);
         this.setContentView(R.layout.activitymain);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);            //竖屏
         if (Build.VERSION.SDK_INT >= 19)
         {
             WindowManager.LayoutParams layoutParams = this.getWindow().getAttributes();
@@ -65,6 +59,7 @@ public class MainActivity extends Activity
                     Pause();
                 }
             });
+         
     }
 
 
@@ -75,7 +70,7 @@ public class MainActivity extends Activity
         {
             if (paused)
                 return;
-            handler.postDelayed(this, 0);
+            handler.post(this);
             time = System.currentTimeMillis() - time2;
 
         }

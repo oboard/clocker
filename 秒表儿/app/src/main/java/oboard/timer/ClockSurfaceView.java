@@ -69,37 +69,46 @@ public class ClockSurfaceView extends SurfaceView implements SurfaceHolder.Callb
             mCanvas.drawColor(Color.argb(50, 0, 0, 0));
             Paint paint = new Paint();
             paint.setAntiAlias(true);
-            
-            paint.setStrokeWidth(3.0f);
             paint.setStyle(Paint.Style.STROKE);
+            final float mw = mCanvas.getWidth(), mh = mCanvas.getHeight();
             RectF rectF = new RectF(
-                100,
-                (mCanvas.getHeight() - mCanvas.getWidth() + 200) / 2,
-                mCanvas.getWidth() - 100,
-                (mCanvas.getHeight() + mCanvas.getWidth() - 200) / 2
+                mw / 10,
+                (mh - mw + mw / 5) / 2,
+                mw - mw / 10,
+                (mh + mw - mw / 5) / 2
             );
             RectF rectF2 = new RectF(
-                (mCanvas.getWidth() - mCanvas.getWidth() / 10) / 2,
-                (mCanvas.getHeight() + mCanvas.getWidth()) / 2 - mCanvas.getWidth() / 5f - 100,
-                (mCanvas.getWidth() + mCanvas.getWidth() / 10) / 2,
-                (mCanvas.getHeight() + mCanvas.getWidth()) / 2 - mCanvas.getWidth() / 10f - 100
+                (mw - mw / 10) / 2,
+                (mh + mw) / 2 - mw / 5f - 100,
+                (mw + mw / 10) / 2,
+                (mh + mw) / 2 - mw / 10f - 100
             );
             paint.setColor(Color.argb(50, 255, 255, 255));
-            mCanvas.drawOval(rectF, paint);
+            //mCanvas.drawOval(rectF, paint);
+            //圆圈边框
+            paint.setStrokeWidth(mw / 50);
             mCanvas.drawOval(rectF2, paint);
+            paint.setStrokeWidth(mw / 20);
+            for (int i = 0; i < 360; i++) {
+                mCanvas.drawArc(rectF, i, 0.5f, false, paint);
+            }
+            
+            //大圈指示
             paint.setColor(Color.WHITE);
             long time = MainActivity.time;
-            float arca1 = 360 * (time % 60000) / 60000;
-            mCanvas.drawArc(rectF, arca1, 10, false, paint);
+            int arca1 = (int)(360 * (time % 60000) / 60000);
+            mCanvas.drawArc(rectF, arca1, 0.5f, false, paint);
+            
+            //小圈指示
+            paint.setStrokeWidth(mw / 50);
             float arca2 = 360 * (time % 1000) / 1000;
-            mCanvas.drawArc(rectF2, arca2, 1, false, paint);
+            mCanvas.drawArc(rectF2, arca2, mw / 50, false, paint);
 
             paint.setStyle(Paint.Style.FILL);
             paint.setTextSize(100);
             paint.setTextAlign(Paint.Align.CENTER);
-            mCanvas.drawText(new SimpleDateFormat("mm:ss:SSS").format(time), mCanvas.getWidth() / 2, mCanvas.getHeight() / 2, paint);
+            mCanvas.drawText(new SimpleDateFormat("mm:ss:SS").format(time), mw / 2, mh / 2, paint);
 
-            
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
