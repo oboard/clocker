@@ -32,6 +32,7 @@ public class MainActivity extends Activity
     {
         this.Pause();
         this.time = 0;
+        local.fresh();
     }
 
     @Override
@@ -59,7 +60,15 @@ public class MainActivity extends Activity
                     Pause();
                 }
             });
-         
+         local.setLongClickable(true);
+         local.setOnLongClickListener(new View.OnLongClickListener() {
+             @Override
+             public boolean onLongClick(View view) {
+                 Stop();
+                 return true;
+             }
+         });
+         local.setDrawingCacheEnabled(true);
     }
 
 

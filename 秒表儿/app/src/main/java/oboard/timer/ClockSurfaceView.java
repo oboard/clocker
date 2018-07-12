@@ -1,21 +1,25 @@
 package oboard.timer;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.graphics.PorterDuff;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.graphics.PixelFormat;
-import android.graphics.PorterDuff;
 import java.text.SimpleDateFormat;
+import android.animation.ValueAnimator;
 
 public class ClockSurfaceView extends SurfaceView implements SurfaceHolder.Callback,Runnable {
     private SurfaceHolder mHolder;
     private Canvas mCanvas;//绘图的画布
     private boolean mIsDrawing;//控制绘画线程的标志位
+    private Bitmap blurBitmap;
+    private int blurAlpha = 0;
 
     public ClockSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -41,6 +45,26 @@ public class ClockSurfaceView extends SurfaceView implements SurfaceHolder.Callb
         this.setKeepScreenOn(true);
     }
 
+    public void fresh() {
+        //刷新动画
+        blurBitmap = this.getDrawingCache();
+        blurBitmap = FastBlur.rsBlur(getContext(), blurBitmap, 25);
+        ValueAnimator v = ValueAnimator.ofInt(0, 255).setDuration(225);
+        v.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator v) {
+                blurAlpha = v.getAnimatedValue();
+            }
+        });
+        v = ValueAnimator.ofInt(255, 0).setDuration(225);
+        v.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator v) {
+                    blurAlpha = v.getAnimatedValue();
+                }
+            });
+    }
+    
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
@@ -109,6 +133,11 @@ public class ClockSurfaceView extends SurfaceView implements SurfaceHolder.Callb
             paint.setTextAlign(Paint.Align.CENTER);
             mCanvas.drawText(new SimpleDateFormat("mm:ss:SS").format(time), mw / 2, mh / 2, paint);
 
+            
+            if(blurAlpha != 0) {
+                paint.setAlpha(blurAlpha);
+                mCanvas.drawBitmap(blurBitmap, 0, 0, paint);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
