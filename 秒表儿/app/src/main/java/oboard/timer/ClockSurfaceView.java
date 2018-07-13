@@ -1,7 +1,7 @@
 package oboard.timer;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -12,14 +12,12 @@ import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import java.text.SimpleDateFormat;
-import android.animation.ValueAnimator;
 
 public class ClockSurfaceView extends SurfaceView implements SurfaceHolder.Callback,Runnable {
     private SurfaceHolder mHolder;
     private Canvas mCanvas;//绘图的画布
     private boolean mIsDrawing;//控制绘画线程的标志位
-    private Bitmap blurBitmap;
-    private int blurAlpha = 0;
+    private float aniv = 0;
     private int mWidth, mHeight;
 
     public ClockSurfaceView(Context context, AttributeSet attrs) {
@@ -55,13 +53,12 @@ public class ClockSurfaceView extends SurfaceView implements SurfaceHolder.Callb
 
     public void fresh() {
         //刷新动画
-        blurBitmap = MainActivity.blurBitmap;
-
-        ValueAnimator v = ValueAnimator.ofInt(0, 255).setDuration(225);
+        
+        ValueAnimator v = ValueAnimator.ofFloat(1, 2, 1).setDuration(450);
         v.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override
                 public void onAnimationUpdate(ValueAnimator v) {
-                    blurAlpha = v.getAnimatedValue();
+                    aniv = v.getAnimatedValue();
                 }
             });
         v.start();/*
@@ -116,12 +113,18 @@ public class ClockSurfaceView extends SurfaceView implements SurfaceHolder.Callb
                     (mw + mw / 10) / 2,
                     (mh + mw) / 2 - mw / 10f - 100
                 );
+                if (aniv != 0) {
+                    // 将坐标系原点移动到画布正中心
+                   // mCanvas.translate();
+                    mCanvas.scale(aniv, aniv, mw / 2, mh / 2);
+                }
                 paint.setColor(Color.argb(50, 255, 255, 255));
                 //mCanvas.drawOval(rectF, paint);
                 //圆圈边框
                 paint.setStrokeWidth(mw / 50);
                 mCanvas.drawOval(rectF2, paint);
                 paint.setStrokeWidth(mw / 20);
+
                 for (int i = 0; i < 360; i++) {
                     mCanvas.drawArc(rectF, i, 0.5f, false, paint);
                 }
@@ -135,21 +138,13 @@ public class ClockSurfaceView extends SurfaceView implements SurfaceHolder.Callb
                 //小圈指示
                 paint.setStrokeWidth(mw / 50);
                 float arca2 = 360 * (time % 1000) / 1000;
-                mCanvas.drawArc(rectF2, arca2 - 90, mw / 50, false, paint);
+                mCanvas.drawArc(rectF2, arca2 - 90 - mw / 100, mw / 50, false, paint);
 
                 paint.setStyle(Paint.Style.FILL);
                 paint.setTextSize(100);
                 paint.setTextAlign(Paint.Align.CENTER);
                 mCanvas.drawText(new SimpleDateFormat("mm:ss:SS").format(time), mw / 2, mh / 2, paint);
 
-
-                if (blurAlpha != 0) {
-                    paint = new Paint();
-                    paint.setAlpha(blurAlpha);
-                    mCanvas.drawBitmap(blurBitmap, 0, 0, null);
-                    //mCanvas.drawText(":"+blurAlpha, mw / 2, mh / 2, paint);
-
-                }
             }
         } catch (Exception e) {
             e.printStackTrace();
