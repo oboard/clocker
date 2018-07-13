@@ -20,6 +20,7 @@ public class ClockSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     private boolean mIsDrawing;//控制绘画线程的标志位
     private Bitmap blurBitmap;
     private int blurAlpha = 0;
+    private int mWidth, mHeight;
 
     public ClockSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -35,36 +36,44 @@ public class ClockSurfaceView extends SurfaceView implements SurfaceHolder.Callb
         super(context, attrs, defStyleAttr);
     }
 
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        mWidth = getMeasuredWidth();
+        mHeight = getMeasuredHeight();
+    }
+
     private void initView() {
         mHolder = getHolder();//获取SurfaceHolder对象
         mHolder.addCallback(this);//注册SurfaceHolder的回调方法
         mHolder.setFormat(PixelFormat.TRANSPARENT);//设置背景透明  
         setFocusable(true);
-        setZOrderOnTop(true);
+        ///setZOrderOnTop(true);
         setFocusableInTouchMode(true);
         this.setKeepScreenOn(true);
     }
 
     public void fresh() {
         //刷新动画
-        blurBitmap = this.getDrawingCache();
-        blurBitmap = FastBlur.rsBlur(getContext(), blurBitmap, 25);
+        blurBitmap = MainActivity.blurBitmap;
+
         ValueAnimator v = ValueAnimator.ofInt(0, 255).setDuration(225);
-        v.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator v) {
-                blurAlpha = v.getAnimatedValue();
-            }
-        });
-        v = ValueAnimator.ofInt(255, 0).setDuration(225);
         v.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override
                 public void onAnimationUpdate(ValueAnimator v) {
                     blurAlpha = v.getAnimatedValue();
                 }
             });
+        v.start();/*
+         v = ValueAnimator.ofInt(255, 0).setDuration(225);
+         v.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+         @Override
+         public void onAnimationUpdate(ValueAnimator v) {
+         blurAlpha = v.getAnimatedValue();
+         }
+         });*/
     }
-    
+
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
@@ -73,8 +82,7 @@ public class ClockSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     }
 
     @Override
-    public void surfaceChanged(SurfaceHolder holder,
-                               int format, int width, int height) {
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
     }
 
     @Override
@@ -88,55 +96,60 @@ public class ClockSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     private void draw() {
         try {
             mCanvas = mHolder.lockCanvas();//获取mCanvas对象进行绘制
-            //SurfaceView背景
-            mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);//透明
-            mCanvas.drawColor(Color.argb(50, 0, 0, 0));
-            Paint paint = new Paint();
-            paint.setAntiAlias(true);
-            paint.setStyle(Paint.Style.STROKE);
-            final float mw = mCanvas.getWidth(), mh = mCanvas.getHeight();
-            RectF rectF = new RectF(
-                mw / 10,
-                (mh - mw + mw / 5) / 2,
-                mw - mw / 10,
-                (mh + mw - mw / 5) / 2
-            );
-            RectF rectF2 = new RectF(
-                (mw - mw / 10) / 2,
-                (mh + mw) / 2 - mw / 5f - 100,
-                (mw + mw / 10) / 2,
-                (mh + mw) / 2 - mw / 10f - 100
-            );
-            paint.setColor(Color.argb(50, 255, 255, 255));
-            //mCanvas.drawOval(rectF, paint);
-            //圆圈边框
-            paint.setStrokeWidth(mw / 50);
-            mCanvas.drawOval(rectF2, paint);
-            paint.setStrokeWidth(mw / 20);
-            for (int i = 0; i < 360; i++) {
-                mCanvas.drawArc(rectF, i, 0.5f, false, paint);
-            }
-            
-            //大圈指示
-            paint.setColor(Color.WHITE);
-            long time = MainActivity.time;
-            int arca1 = (int)(360 * (time % 60000) / 60000);
-            mCanvas.drawArc(rectF, arca1, 0.5f, false, paint);
-            
-            //小圈指示
-            paint.setStrokeWidth(mw / 50);
-            float arca2 = 360 * (time % 1000) / 1000;
-            mCanvas.drawArc(rectF2, arca2, mw / 50, false, paint);
+            if (mCanvas != null) {
+                //SurfaceView背景
+                mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);//透明
+                mCanvas.drawColor(Color.argb(50, 0, 0, 0));
+                Paint paint = new Paint();
+                paint.setAntiAlias(true);
+                paint.setStyle(Paint.Style.STROKE);
+                final float mw = mCanvas.getWidth(), mh = mCanvas.getHeight();
+                RectF rectF = new RectF(
+                    mw / 10,
+                    (mh - mw + mw / 5) / 2,
+                    mw - mw / 10,
+                    (mh + mw - mw / 5) / 2
+                );
+                RectF rectF2 = new RectF(
+                    (mw - mw / 10) / 2,
+                    (mh + mw) / 2 - mw / 5f - 100,
+                    (mw + mw / 10) / 2,
+                    (mh + mw) / 2 - mw / 10f - 100
+                );
+                paint.setColor(Color.argb(50, 255, 255, 255));
+                //mCanvas.drawOval(rectF, paint);
+                //圆圈边框
+                paint.setStrokeWidth(mw / 50);
+                mCanvas.drawOval(rectF2, paint);
+                paint.setStrokeWidth(mw / 20);
+                for (int i = 0; i < 360; i++) {
+                    mCanvas.drawArc(rectF, i, 0.5f, false, paint);
+                }
 
-            paint.setStyle(Paint.Style.FILL);
-            paint.setTextSize(100);
-            paint.setTextAlign(Paint.Align.CENTER);
-            mCanvas.drawText(new SimpleDateFormat("mm:ss:SS").format(time), mw / 2, mh / 2, paint);
+                //大圈指示
+                paint.setColor(Color.WHITE);
+                long time = MainActivity.time;
+                int arca1 = (int)(360 * (time % 60000) / 60000);
+                mCanvas.drawArc(rectF, arca1 - 90, 0.5f, false, paint);
 
-            
-            if(blurAlpha != 0) {
-                paint.setAlpha(blurAlpha);
-                mCanvas.drawBitmap(blurBitmap, 0, 0, paint);
+                //小圈指示
+                paint.setStrokeWidth(mw / 50);
+                float arca2 = 360 * (time % 1000) / 1000;
+                mCanvas.drawArc(rectF2, arca2 - 90, mw / 50, false, paint);
+
+                paint.setStyle(Paint.Style.FILL);
+                paint.setTextSize(100);
+                paint.setTextAlign(Paint.Align.CENTER);
+                mCanvas.drawText(new SimpleDateFormat("mm:ss:SS").format(time), mw / 2, mh / 2, paint);
+
+
+                if (blurAlpha != 0) {
+                    paint = new Paint();
+                    paint.setAlpha(blurAlpha);
+                    mCanvas.drawBitmap(blurBitmap, 0, 0, null);
+                    //mCanvas.drawText(":"+blurAlpha, mw / 2, mh / 2, paint);
+
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

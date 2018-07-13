@@ -2,6 +2,8 @@ package oboard.timer;
 
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,7 +16,7 @@ public class MainActivity extends Activity
     Handler handler = new Handler();
     public static boolean paused = true;
     public static long time = 0, time2 = 0;
-
+    public static Bitmap blurBitmap;
     private void Pause()
     {
         this.paused = true;
@@ -32,6 +34,14 @@ public class MainActivity extends Activity
     {
         this.Pause();
         this.time = 0;
+        
+       
+        View view = getWindow().getDecorView();
+        blurBitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(blurBitmap);
+        view.draw(canvas);
+        blurBitmap = FastBlur.rsBlur(MainActivity.this, blurBitmap, 25);
+        
         local.fresh();
     }
 
@@ -68,10 +78,9 @@ public class MainActivity extends Activity
                  return true;
              }
          });
-         local.setDrawingCacheEnabled(true);
+         //local.setDrawingCacheEnabled(true);
     }
-
-
+    
     Runnable runnable = new Runnable() {
 
         @Override
